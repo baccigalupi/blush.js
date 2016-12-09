@@ -1,0 +1,30 @@
+{
+  "name": "blush",
+  "version": "0.1.0",
+  "description": "A micro front-end framework.",
+  "main": "index.js",
+  "scripts": {
+    "test": "open test/runner.html"
+  },
+  "keywords": [
+    "front-end",
+    "framework",
+    "mustache"
+  ],
+  "author": "baccigalupi",
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-gzip": "^1.4.0",
+    "gulp-include": "^2.3.1",
+    "gulp-jsbeautifier": "^2.0.3",
+    "gulp-rename": "^1.2.2",
+    "gulp-rimraf": "^0.2.1",
+    "gulp-sourcemaps": "^1.9.1",
+    "gulp-uglify": "^2.0.0",
+    "jshint": "^2.9.4",
+    "nodemon": "^1.11.0",
+    "run-sequence": "^1.2.2"
+  }
+}

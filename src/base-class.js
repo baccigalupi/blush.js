@@ -1,0 +1,29 @@
+Blush.createConstructor = function() {
+  var klass = function klass() {
+    if (!(this instanceof klass)) {
+      throw new Error('This is a class, and cannot be called without the new keyword.');
+    }
+    this._initialize.apply(this, arguments);
+  };
+  return klass;
+};
+
+Blush.BaseClass = Blush.createConstructor();
+
+Blush.BaseClass.prototype._initialize = function () {
+  this.initialize.apply(this, arguments);
+};
+
+Blush.BaseClass.prototype.initialize = function () {};
+
+Blush.BaseClass.extend = function extend() {
+  var parentClass = this;
+  var childClass  = Blush.createConstructor();
+  var extensions = Array.prototype.slice.call(arguments);
+  extensions.unshift(parentClass.prototype);
+  extensions.unshift(childClass.prototype);
+  Object.assign.apply(null, extensions);
+  childClass.prototype.constructor = childClass;
+  childClass.extend = extend;
+  return childClass;
+};
