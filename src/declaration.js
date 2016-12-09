@@ -1,2 +1,4 @@
-var Blush = this.Blush || {};
-Blush.polyfills  = Blush.polyfills || {};
+var Blush = {};
+Blush.polyfills = {};
+Blush.utils = {};
+Blush.utils.isFunction = Mario.isFunction;
