@@ -5,7 +5,6 @@ describe('Blush.ViewModel', function() {
     app = {
       data: function() {
         return {
-          things: [{id: 1, name: 'thing 1'}, {id: 2, name: 'thing2'}],
           current_user: {name: 'Kane', id: 42}
         };
       }
@@ -76,6 +75,19 @@ describe('Blush.ViewModel', function() {
     viewModel = new ViewModel({app: app});
     expect(viewModel.json()).toEqual({
       answer_to_life: 42,
+    });
+  });
+
+  it('escapes html escapes all the keys', function() {
+    ViewModel = Blush.ViewModel.extend({
+      attributes: ['user_input'],
+      userInput: '<script>doMeWrong(window);</script>'
+    });
+
+    viewModel = new ViewModel({app: app});
+
+    expect(viewModel.json()).toEqual({
+      user_input: '&lt;script&gt;doMeWrong(window);&lt;&#x2F;script&gt;',
     });
   });
 });

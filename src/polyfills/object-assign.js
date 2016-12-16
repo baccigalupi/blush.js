@@ -12,6 +12,6 @@ Blush.polyfills.objectAssign = function() {
 	}
 
 	return target;
-}
+};
 
 Object.assign = Object.assign || Blush.polyfills.objectAssign;

@@ -7,19 +7,42 @@ Blush.ViewModel = Blush.BaseClass.extend({
   },
 
   json: function() {
-    var json = {};
-    var attributes = (this.attributes || []);
-    var length = attributes.length;
-    var i, attributeName, camelAttributeName, local;
-    for (i = 0; i < length; i++) {
-      attributeName = attributes[i];
-      camelAttributeName = Blush.utils.camelize(attributeName);
-      local = this[attributeName] || this[camelAttributeName];
-      if (local !== undefined && Blush.utils.isFunction(local)) {
-        local = local();
-      }
-      json[attributeName] = local || this.data[attributeName];
+    return new Blush.ViewModel.ExtractJSON(this).run();
+  }
+}, Blush.utils);
+
+Blush.ViewModel.ExtractJSON = Blush.BaseClass.extend({
+  _initialize: function(viewModel) {
+    this.json                 = {};
+    this.viewModel            = viewModel;
+    this.data                 = viewModel.data;
+    this.attributes           = viewModel.attributes || [];
+    this.unescapedAttributes  = viewModel.unescapedAttributes || [];
+  },
+
+  run: function() {
+    this.addEscapedAttributes();
+    //this.addUnescapedAttributes();
+    return this.json;
+  },
+
+  addEscapedAttributes() {
+    this.attributes.forEach(function(name) {
+      this.json[name] = this.escapedValueFor(name);
+    }.bind(this));
+  },
+
+  escapedValueFor: function(name) {
+    var value = this.valueFor(name);
+    return Blush.utils.escapeHTML(value);
+  },
+
+  valueFor: function(name) {
+    var camelName = Blush.utils.camelize(name);
+    var local = this.viewModel[name] || this.viewModel[camelName];
+    if (local !== undefined && Blush.utils.isFunction(local)) {
+      local = local();
     }
-    return json;
+    return local || this.data[name];
   }
 });
