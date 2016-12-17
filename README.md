@@ -6,8 +6,7 @@ Mario.js
 * better performance again
 
 Blush.View
-* simpler object only config
-* caching _config on the prototype
+* parent selection
 
 Blush.ViewModel
 * switch to config for attributes

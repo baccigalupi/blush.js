@@ -1,105 +1,110 @@
 describe('Blush.View', function() {
   var app, View, view;
 
-  it('given a template string literal', function() {
-    View = Blush.View.extend({
-      config: {
-        template: '<h1>hello {{type}} world</h1>'
-      }
-    });
-
-    view = new View();
-    view.render();
-
-    expect(view.dom.innerHTML).toBe('<h1>hello  world</h1>');
-  });
-
-  it('given a template string literal and a literal object as the view model', function() {
-    View = Blush.View.extend({
-      config: {
-        template: '<h1>hello {{type}} world</h1>',
-        viewModel: {type: 'cruel'}
-      }
-    });
-
-    view = new View();
-    view.render();
-
-    expect(view.dom.innerHTML).toBe('<h1>hello cruel world</h1>');
-  });
-
-  it('given a template attached to an app object not yet in scope', function() {
-    View = Blush.View.extend({
-      config: function () {
-        return {
-          template: app.templates['hello-world']
-        };
-      }
-    });
-
-    app = {
-      templates: {'hello-world': '<h1>hello {{type}} world</h1>'},
-      viewsModels: {}
-    };
-
-    view = new View();
-    view.render();
-
-    expect(view.dom.innerHTML).toBe('<h1>hello  world</h1>');
-  });
-
-  it('given a template attached to an app object not yet in scope', function() {
-    View = Blush.View.extend({
-      config: function () {
-        return {
-          template: app.templates['hello-world'],
-          viewModel: app.viewModels['hello-world']
-        };
-      }
-    });
-
-    app = {
-      templates: {'hello-world': '<h1>hello {{type}} world</h1>'},
-      viewModels: {'hello-world': {type: 'happy'}}
-    };
-
-    view = new View();
-    view.render();
-
-    expect(view.dom.innerHTML).toBe('<h1>hello happy world</h1>');
-  });
-
-  it('when initialized with an app, will store it for use it with the configured name to render', function() {
-    View = Blush.View.extend({
-      config: {
-        name: 'hello-world'
-      }
-    });
+  beforeEach(function() {
     app = {
       templates: {'hello-world': '<h1>hello {{type}} world</h1>'},
       viewModels: {'hello-world': {type: 'sulking'}}
     };
-    view = new View({app: app});
-    expect(view.app).toBe(app);
-    view.render();
-    expect(view.dom.innerHTML).toBe('<h1>hello sulking world</h1>');
   });
 
-  it('when initialized with a parent, will append to the parent', function() {
-    View = Blush.View.extend({
-      config: {
-        name: 'hello-world'
-      }
+  describe('basic rendering', function() {
+    it('when initialized with an app, will store it for use it with the configured name to render', function() {
+      View = Blush.View.extend({
+        config: {
+          name: 'hello-world'
+        }
+      });
+
+      view = new View({app: app});
+      expect(view.app).toBe(app);
+
+      view.render();
+      expect(view.dom.innerHTML).toBe('<h1>hello sulking world</h1>');
     });
-    app = {
-      templates: {'hello-world': '<h1>hello {{type}} world</h1>'},
-      viewModels: {'hello-world': {type: 'sulking'}}
-    };
-    var parent = document.querySelector('.test-dom-space');
-    view = new View({app: app, parent: parent});
-    expect(view.app).toBe(app);
-    view.render();
-    expect(view.dom.innerHTML).toBe('<h1>hello sulking world</h1>');
-    parent.innerHTML = '';
+  });
+
+  describe('rendering into a parent, attachment method', function() {
+    it('will append to the parent by default', function() {
+      View = Blush.View.extend({
+        config: {
+          name: 'hello-world'
+        }
+      });
+
+      var parent = document.createElement('div');
+      parent.innerHTML = '<a href="#hey">Don\'t go away</a>\n';
+      view = new View({app: app, parent: parent});
+      expect(view.app).toBe(app);
+      view.render();
+      expect(view.dom.innerHTML).toBe('<a href="#hey">Don\'t go away</a>\n<h1>hello sulking world</h1>');
+    });
+
+    it('will prepend to the parent when configured', function() {
+      View = Blush.View.extend({
+        config: {
+          name: 'hello-world',
+          attachmentMethod: 'prepend'
+        }
+      });
+
+      var parent = document.createElement('div');
+      parent.innerHTML = '<a href="#hey">Don\'t go away</a>\n';
+      view = new View({app: app, parent: parent});
+      expect(view.app).toBe(app);
+      view.render();
+      expect(view.dom.innerHTML).toBe('<h1>hello sulking world</h1><a href="#hey">Don\'t go away</a>\n');
+    });
+
+    it('will replace the innerHTML of the parent when configured', function() {
+      View = Blush.View.extend({
+        config: {
+          name: 'hello-world',
+          attachmentMethod: 'replace'
+        }
+      });
+
+      var parent = document.createElement('div');
+      parent.innerHTML = '<a href="#hey">Don\'t go away</a>\n';
+      view = new View({app: app, parent: parent});
+      expect(view.app).toBe(app);
+      view.render();
+      expect(view.dom.innerHTML).toBe('<h1>hello sulking world</h1>');
+    });
+  });
+
+  describe('parent selector', function() {
+    it('when not found will default to attaching to parent', function() {
+      View = Blush.View.extend({
+        config: {
+          name: 'hello-world',
+          parentSelector: '.not-here'
+        }
+      });
+
+      var parent = document.createElement('div');
+      parent.innerHTML = '<a href="#hey">Don\'t go away</a>\n';
+      view = new View({app: app, parent: parent});
+      expect(view.app).toBe(app);
+      view.render();
+      expect(view.dom.innerHTML).toBe('<a href="#hey">Don\'t go away</a>\n<h1>hello sulking world</h1>');
+    });
+
+    it('when found will go into that parent element', function() {
+      View = Blush.View.extend({
+        config: {
+          name: 'hello-world',
+          parentSelector: 'a',
+          attachmentMethod: 'replace'
+        }
+      });
+
+      var parent = document.createElement('div');
+      parent.innerHTML = '<a href="#hey">Don\'t go away</a>\n';
+      view = new View({app: app, parent: parent});
+      expect(view.app).toBe(app);
+      view.render();
+      expect(parent.innerHTML).toBe('<a href="#hey"><h1>hello sulking world</h1></a>\n');
+    });
   });
 });

@@ -19,10 +19,12 @@
     "gulp-gzip": "^1.4.0",
     "gulp-include": "^2.3.1",
     "gulp-jsbeautifier": "^2.0.3",
+    "gulp-minify": "0.0.14",
     "gulp-rename": "^1.2.2",
     "gulp-rimraf": "^0.2.1",
     "gulp-sourcemaps": "^1.9.1",
     "gulp-uglify": "^2.0.0",
+    "gulp-wrap": "^0.13.0",
     "jshint": "^2.9.4",
     "nodemon": "^1.11.0",
     "run-sequence": "^1.2.2"

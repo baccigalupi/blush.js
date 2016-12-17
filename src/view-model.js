@@ -26,7 +26,7 @@ Blush.ViewModel.ExtractJSON = Blush.BaseClass.extend({
     return this.json;
   },
 
-  addEscapedAttributes() {
+  addEscapedAttributes: function () {
     this.attributes.forEach(function(name) {
       this.json[name] = this.escapedValueFor(name);
     }.bind(this));
