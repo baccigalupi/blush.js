@@ -2,6 +2,7 @@ Blush.View = Blush.BaseClass.extend({
   _initialize: function(opts) {
     opts = opts || {};
     this.app = opts.app;
+    this._config = new Blush.Config(this.config, Blush.View, this.app);
     this.dom = this.findDom(opts) || document.createElement('div');
   },
 
@@ -28,38 +29,19 @@ Blush.View = Blush.BaseClass.extend({
   },
 
   template: function() {
-    return this.getFromApp('template') || Blush.View.defaultConfig['template'];
+    return this._config.getFromApp('template') || Blush.View.defaultConfig['template'];
   },
 
   viewModel: function() {
-    return this.getFromApp('viewModel') || Blush.View.defaultConfig['viewModel'];
+    return this._config.getFromApp('viewModel') || Blush.View.defaultConfig['viewModel'];
   },
 
   selector: function() {
-    return this.getConfig('selector');
+    return this._config.get('selector');
   },
 
   renderVia: function() {
-    return this.getConfig('renderVia');
-  },
-
-  getFromApp: function(key) {
-    if (!this.app) { return; }
-    var name = this.getConfig('name');
-    if (!name) { return; }
-    return this.app[key + 's'][name];
-  },
-
-  getConfig: function(type) {
-    var value;
-
-    if (this.config[type] !== undefined) {
-      value = this.config[type];
-    } else {
-      value = Blush.View.defaultConfig[type];
-    }
-
-    return value;
+    return this._config.get('renderVia');
   }
 });
 
@@ -69,6 +51,36 @@ Blush.View.defaultConfig = {
   renderVia: 'append', // prepend, or replace
   selector: undefined
 };
+
+Blush.Config = Blush.BaseClass.extend({
+  _initialize: function(config, klass, app) {
+    this.defaultConfig = klass.defaultConfig;
+    this.config = config;
+    this.app = app;
+  },
+
+  get: function(key) {
+    if (this['_' + key] !== undefined) { return this['_' + key];}
+
+    var value;
+    if (this.config[key] !== undefined) {
+      value = this.config[key];
+    } else {
+      value = this.defaultConfig[key];
+    }
+
+    this['_' + key] = value;
+    return value;
+  },
+
+  getFromApp: function(key) {
+    if (!this.app) { return; }
+    var name = this.get('name');
+    if (!name) { return; }
+    return this.app[key + 's'][name];
+  }
+});
+
 
 Blush.View.DomFinder = Blush.BaseClass.extend({
   _initialize: function(app, parentDom, selector) {
