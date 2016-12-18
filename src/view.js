@@ -28,31 +28,19 @@ Blush.View = Blush.BaseClass.extend({
   },
 
   template: function() {
-    return this.getFromApp('template') || this._defaultConfig['template'];
+    return this.getFromApp('template') || Blush.View.defaultConfig['template'];
   },
 
   viewModel: function() {
-    return this.getFromApp('viewModel') || this._defaultConfig['viewModel'];
+    return this.getFromApp('viewModel') || Blush.View.defaultConfig['viewModel'];
   },
 
   parentSelector: function() {
-    return this.getConfig('parentSelector') || this._defaultConfig['parentSelector'];
+    return this.getConfig('parentSelector');
   },
 
   attachmentMethod: function() {
-    return this.getConfig('attachmentMethod') || this._defaultConfig['attachmentMethod'];
-  },
-
-  resolveConfig: function() {
-    if (this._config) { return; }
-
-    if (this.config && Blush.utils.isFunction(this.config)) {
-      this._config = this.config();
-    } else if (this.config) {
-      this._config = this.config;
-    } else {
-      this._config = {};
-    }
+    return this.getConfig('attachmentMethod');
   },
 
   getFromApp: function(key) {
@@ -65,24 +53,22 @@ Blush.View = Blush.BaseClass.extend({
   getConfig: function(type) {
     var value;
 
-    this.resolveConfig();
-
-    if (this._config[type] !== undefined) {
-      value = this._config[type];
+    if (this.config[type] !== undefined) {
+      value = this.config[type];
     } else {
-      value = this._defaultConfig[type];
+      value = Blush.View.defaultConfig[type];
     }
 
     return value;
-  },
-
-  _defaultConfig: {
-    viewModel: {},
-    template: 'Template not found!',
-    attachmentMethod: 'append', // prepend, or replace
-    parentSelector: undefined
   }
 });
+
+Blush.View.defaultConfig = {
+  viewModel: {},
+  template: 'Template not found!',
+  attachmentMethod: 'append', // prepend, or replace
+  parentSelector: undefined
+};
 
 Blush.View.DomFinder = Blush.BaseClass.extend({
   _initialize: function(app, parentDom, selector) {
