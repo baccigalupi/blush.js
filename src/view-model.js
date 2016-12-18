@@ -3,7 +3,6 @@ Blush.ViewModel = Blush.BaseClass.extend({
     opts = opts || {};
     var app = opts.app || {};
     this.data = app.data && app.data();
-    this.initialize.apply(this, arguments);
   },
 
   json: function() {
@@ -21,20 +20,14 @@ Blush.ViewModel.ExtractJSON = Blush.BaseClass.extend({
   },
 
   run: function() {
-    this.addEscapedAttributes();
-    //this.addUnescapedAttributes();
+    this.addAttributes();
     return this.json;
   },
 
-  addEscapedAttributes: function () {
+  addAttributes: function () {
     this.attributes.forEach(function(name) {
-      this.json[name] = this.escapedValueFor(name);
+      this.json[name] = this.valueFor(name);
     }.bind(this));
-  },
-
-  escapedValueFor: function(name) {
-    var value = this.valueFor(name);
-    return Blush.utils.escapeHTML(value);
   },
 
   valueFor: function(name) {

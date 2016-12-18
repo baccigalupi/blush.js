@@ -19,22 +19,3 @@ Blush.utils.camelize = function camelize(word) {
     return g[1].toUpperCase();
   });
 };
-
-Blush.utils.escapeHTML = function escapeHTML(text) {
-  if (!Blush.utils.isString(text)) { return text; }
-
-  var entityMap = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-    '/': '&#x2F;',
-    '`': '&#x60;',
-    '=': '&#x3D;'
-  };
-
-  return String(text).replace(/[&<>"'`=\/]/g, function fromEntityMap (s) {
-    return entityMap[s];
-  });
-};

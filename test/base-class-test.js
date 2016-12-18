@@ -1,9 +1,26 @@
 describe('Blush.BaseClass', function () {
   var NewClass = Blush.BaseClass.extend({
+    _initialize() {
+      this._initialized = true;
+      this._initializedArguments = arguments;
+    },
+
     initialize() {
       this.initialized = true;
       this.initializedArguments = arguments;
     }
+  });
+
+  it('initialization calls this._initialize', function () {
+    var instance = new NewClass();
+    expect(instance._initialized).toBe(true);
+  });
+
+  it('initialization calls _initialize with arguments to new', function () {
+    var instance = new NewClass('foo', 'bar', 42);
+    expect(instance._initializedArguments[0]).toEqual('foo');
+    expect(instance._initializedArguments[1]).toEqual('bar');
+    expect(instance._initializedArguments[2]).toEqual(42);
   });
 
   it('initialization calls this.initialize', function () {

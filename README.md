@@ -5,9 +5,6 @@
 Mario.js
 * better performance again
 
-Blush.View
-* parent selection
-
 Blush.ViewModel
 * switch to config for attributes
 * doesnt do any escaping

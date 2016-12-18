@@ -3,7 +3,6 @@ Blush.View = Blush.BaseClass.extend({
     opts = opts || {};
     this.app = opts.app;
     this.dom = this.findDom(opts) || document.createElement('div');
-    this.initialize.apply(this, arguments);
   },
 
   render: function() {

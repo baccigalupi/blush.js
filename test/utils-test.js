@@ -8,29 +8,6 @@ describe('Blush.utils.camelize', function () {
   });
 });
 
-describe('Blush.utils.escapeHTML', function() {
-  it('escapes & to &amp;', function() {
-    expect(Blush.utils.escapeHTML('this & that')).toBe('this &amp; that');
-  });
-
-  it('escapes tags', function() {
-    expect(Blush.utils.escapeHTML('<h1>Hi!</h1>')).toBe('&lt;h1&gt;Hi!&lt;&#x2F;h1&gt;');
-  });
-
-  it('escapes quotes', function() {
-    expect(Blush.utils.escapeHTML('"i am not a crook"')).toBe('&quot;i am not a crook&quot;');
-    expect(Blush.utils.escapeHTML("'i am not a crook'")).toBe('&#39;i am not a crook&#39;');
-  });
-
-  it('escapes ticks', function() {
-    expect(Blush.utils.escapeHTML('`i am not a coder`')).toBe('&#x60;i am not a coder&#x60;');
-  });
-
-  it('escapes equal signs', function() {
-    expect(Blush.utils.escapeHTML('window.location = scam')).toBe('window.location &#x3D; scam');
-  });
-});
-
 describe('is type functions', function() {
   it('isFunction works', function() {
     expect(Blush.utils.isFunction(function() {})).toBe(true);

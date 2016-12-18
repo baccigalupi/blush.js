@@ -24,7 +24,6 @@ var concatAndWrap = function (sources, name) {
   return gulp.src(sources)
     .pipe(concat(name))
     .pipe(wrap("(function(global) {\n'use strict';\n<%= contents %>\n})(this);"))
-    .pipe(prettify(beautyOpts))
     .pipe(gulp.dest('./dist/'));
 };
 
@@ -39,7 +38,7 @@ var minifySource = function (source, name) {
   return gulp.src(source)
     .pipe(rename(name + '.min.js'))
     .pipe(sourcemaps.init())
-    .pipe(minify())
+    .pipe(uglify())
     .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest('./dist/'));
 };

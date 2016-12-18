@@ -3,14 +3,15 @@ Blush.createConstructor = function() {
     if (!(this instanceof klass)) {
       throw new Error('This is a class, and cannot be called without the new keyword.');
     }
-    this._initialize.apply(this, arguments);
+    this.__initialize.apply(this, arguments);
   };
   return klass;
 };
 
 Blush.BaseClass = Blush.createConstructor();
 
-Blush.BaseClass.prototype._initialize = function () {
+Blush.BaseClass.prototype.__initialize = function () {
+  this._initialize.apply(this, arguments);
   this.initialize.apply(this, arguments);
 };
 

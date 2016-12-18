@@ -77,17 +77,4 @@ describe('Blush.ViewModel', function() {
       answer_to_life: 42,
     });
   });
-
-  it('escapes html escapes all the keys', function() {
-    ViewModel = Blush.ViewModel.extend({
-      attributes: ['user_input'],
-      userInput: '<script>doMeWrong(window);</script>'
-    });
-
-    viewModel = new ViewModel({app: app});
-
-    expect(viewModel.json()).toEqual({
-      user_input: '&lt;script&gt;doMeWrong(window);&lt;&#x2F;script&gt;',
-    });
-  });
 });
