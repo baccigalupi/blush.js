@@ -63,8 +63,9 @@ gulp.task('concatSource', function () {
     './src/declaration.js',
     './src/polyfills/array-for-each.js',
     './src/polyfills/object-assign.js',
-    './src/base-class.js',
     './src/utils.js',
+    './src/base-class.js',
+    './src/config.js',
     './src/view-model.js',
     './src/view.js'
   ];

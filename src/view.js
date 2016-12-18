@@ -2,13 +2,13 @@ Blush.View = Blush.BaseClass.extend({
   _initialize: function(opts) {
     opts = opts || {};
     this.app = opts.app;
-    this._config = new Blush.Config(this.config, Blush.View, this.app);
+    this._config = new Blush.View.Config(this.config, Blush.View, this.app);
     this.dom = this.findDom(opts) || document.createElement('div');
   },
 
   render: function() {
-    var renderVia = this.renderVia();
-    var rendered = this.renderTemplate();
+    var renderVia = this._config.renderVia();
+    var rendered  = this.renderTemplate();
     // TODO: switch to more efficient if test 
     // View.attachmentType.APPEND = 0; // etc
     if (renderVia === 'append') {
@@ -21,27 +21,11 @@ Blush.View = Blush.BaseClass.extend({
   },
 
   findDom: function(opts) {
-    return new Blush.View.DomFinder(this.app, opts.parent, this.selector()).dom();
+    return new Blush.View.DomFinder(this.app, opts.parent, this._config.selector()).dom();
   },
 
   renderTemplate: function() {
-    return Mario.render(this.template(), this.viewModel());
-  },
-
-  template: function() {
-    return this._config.getFromApp('template') || Blush.View.defaultConfig['template'];
-  },
-
-  viewModel: function() {
-    return this._config.getFromApp('viewModel') || Blush.View.defaultConfig['viewModel'];
-  },
-
-  selector: function() {
-    return this._config.get('selector');
-  },
-
-  renderVia: function() {
-    return this._config.get('renderVia');
+    return Mario.render(this._config.template(), this._config.viewModel());
   }
 });
 
@@ -52,35 +36,24 @@ Blush.View.defaultConfig = {
   selector: undefined
 };
 
-Blush.Config = Blush.BaseClass.extend({
-  _initialize: function(config, klass, app) {
-    this.defaultConfig = klass.defaultConfig;
-    this.config = config;
-    this.app = app;
+
+Blush.View.Config = Blush.Config.extend({
+  template: function() {
+    return this.getFromApp('template');
   },
 
-  get: function(key) {
-    if (this['_' + key] !== undefined) { return this['_' + key];}
-
-    var value;
-    if (this.config[key] !== undefined) {
-      value = this.config[key];
-    } else {
-      value = this.defaultConfig[key];
-    }
-
-    this['_' + key] = value;
-    return value;
+  viewModel: function() {
+    return this.getFromApp('viewModel');
   },
 
-  getFromApp: function(key) {
-    if (!this.app) { return; }
-    var name = this.get('name');
-    if (!name) { return; }
-    return this.app[key + 's'][name];
+  selector: function() {
+    return this.get('selector');
+  },
+
+  renderVia: function() {
+    return this.get('renderVia');
   }
 });
-
 
 Blush.View.DomFinder = Blush.BaseClass.extend({
   _initialize: function(app, parentDom, selector) {
