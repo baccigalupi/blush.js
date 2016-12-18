@@ -6,13 +6,13 @@ Blush.View = Blush.BaseClass.extend({
   },
 
   render: function() {
-    var attachmentMethod = this.attachmentMethod();
+    var renderVia = this.renderVia();
     var rendered = this.renderTemplate();
     // TODO: switch to more efficient if test 
     // View.attachmentType.APPEND = 0; // etc
-    if (attachmentMethod === 'append') {
+    if (renderVia === 'append') {
       this.dom.innerHTML += rendered;
-    } else if (attachmentMethod === 'replace') {
+    } else if (renderVia === 'replace') {
       this.dom.innerHTML = rendered;
     } else {
       this.dom.innerHTML = rendered + this.dom.innerHTML;
@@ -20,7 +20,7 @@ Blush.View = Blush.BaseClass.extend({
   },
 
   findDom: function(opts) {
-    return new Blush.View.DomFinder(this.app, opts.parent, this.parentSelector()).dom();
+    return new Blush.View.DomFinder(this.app, opts.parent, this.selector()).dom();
   },
 
   renderTemplate: function() {
@@ -35,12 +35,12 @@ Blush.View = Blush.BaseClass.extend({
     return this.getFromApp('viewModel') || Blush.View.defaultConfig['viewModel'];
   },
 
-  parentSelector: function() {
-    return this.getConfig('parentSelector');
+  selector: function() {
+    return this.getConfig('selector');
   },
 
-  attachmentMethod: function() {
-    return this.getConfig('attachmentMethod');
+  renderVia: function() {
+    return this.getConfig('renderVia');
   },
 
   getFromApp: function(key) {
@@ -66,8 +66,8 @@ Blush.View = Blush.BaseClass.extend({
 Blush.View.defaultConfig = {
   viewModel: {},
   template: 'Template not found!',
-  attachmentMethod: 'append', // prepend, or replace
-  parentSelector: undefined
+  renderVia: 'append', // prepend, or replace
+  selector: undefined
 };
 
 Blush.View.DomFinder = Blush.BaseClass.extend({

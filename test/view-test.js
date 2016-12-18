@@ -44,7 +44,7 @@ describe('Blush.View', function() {
       View = Blush.View.extend({
         config: {
           name: 'hello-world',
-          attachmentMethod: 'prepend'
+          renderVia: 'prepend'
         }
       });
 
@@ -60,7 +60,7 @@ describe('Blush.View', function() {
       View = Blush.View.extend({
         config: {
           name: 'hello-world',
-          attachmentMethod: 'replace'
+          renderVia: 'replace'
         }
       });
 
@@ -78,7 +78,7 @@ describe('Blush.View', function() {
       View = Blush.View.extend({
         config: {
           name: 'hello-world',
-          parentSelector: '.not-here'
+          selector: '.not-here'
         }
       });
 
@@ -94,8 +94,8 @@ describe('Blush.View', function() {
       View = Blush.View.extend({
         config: {
           name: 'hello-world',
-          parentSelector: 'a',
-          attachmentMethod: 'replace'
+          selector: 'a',
+          renderVia: 'replace'
         }
       });
 
