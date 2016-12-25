@@ -55,4 +55,9 @@ describe('Blush.BaseClass', function () {
       NewClass();
     }).toThrow();
   });
+
+  it('knows its constructor', function() {
+    var instance = new NewClass();
+    expect(instance.constructor).toEqual(NewClass);
+  });
 });
