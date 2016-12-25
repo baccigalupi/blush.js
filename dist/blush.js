@@ -1,272 +1,244 @@
 (function(global) {
-    'use strict';
-    var Blush = {};
-    Blush.polyfills = {};
-    Blush.utils = {};
+'use strict';
+var Blush = {};
+Blush.polyfills = {};
+Blush.utils = {};
 
-    Blush.polyfills.arrayForEach = function arrayForEach(iterator) {
-        var length = this.length;
-        var i, element;
-        for (i = 0; i < length; i++) {
-            element = this[i];
-            iterator(element, i, this);
-        }
-    };
+Blush.polyfills.arrayForEach = function arrayForEach(iterator) {
+  var length = this.length;
+  var i, element;
+  for (i = 0; i < length; i++) {
+    element = this[i];
+    iterator(element, i, this);
+  }
+};
 
-    Array.prototype.forEach = Array.prototype.forEach || Blush.polyfills.arrayForEach;
+Array.prototype.forEach = Array.prototype.forEach || Blush.polyfills.arrayForEach;
 
-    Blush.polyfills.objectAssign = function() {
-        var target = arguments[0];
-        var current, key, argumentIndex;
+Blush.polyfills.objectAssign = function() {
+  var target = arguments[0];
+  var current, key, argumentIndex;
 
-        for (argumentIndex = 1; argumentIndex < arguments.length; argumentIndex++) {
-            current = arguments[argumentIndex];
-            for (key in current) {
-                if (current.hasOwnProperty(key)) {
-                    target[key] = current[key];
-                }
-            }
-        }
+  for (argumentIndex = 1; argumentIndex < arguments.length; argumentIndex++) {
+		current = arguments[argumentIndex];
+    for (key in current) {
+      if (current.hasOwnProperty(key)) {
+        target[key] = current[key];
+      }
+    }
+	}
 
-        return target;
-    };
+	return target;
+};
 
-    Object.assign = Object.assign || Blush.polyfills.objectAssign;
+Object.assign = Object.assign || Blush.polyfills.objectAssign;
 
-    Blush.createConstructor = function() {
-        var klass = function klass() {
-            if (!(this instanceof klass)) {
-                throw new Error('This is a class, and cannot be called without the new keyword.');
-            }
-            this._initialize.apply(this, arguments);
-        };
-        return klass;
-    };
+Blush.utils.typeOf = function typeOf(value) {
+  var output = Object.prototype.toString.call(value);
+  var matches = output.match(/\[object (.*)\]/);
+  return matches && matches[1];
+};
 
-    Blush.BaseClass = Blush.createConstructor();
+['String', 'Array', 'Object', 'Date', 'Regex', 'Number', 'Function', 'Null', 'Undefined', 'Boolean'].forEach(function(type) {
+  Blush.utils['is' + type] = function isA(value) {
+    return Blush.utils.typeOf(value) === type;
+  };
+});
 
-    Blush.BaseClass.prototype._initialize = function() {
-        this.initialize.apply(this, arguments);
-    };
+Blush.utils.isNil = function isNil(value) {
+  return Blush.utils.isUndefined(value) || Blush.utils.isNull(value);
+};
 
-    Blush.BaseClass.prototype.initialize = function() {};
+Blush.utils.camelize = function camelize(word) {
+  return word.replace(/(_\w)/g, function (g) {
+    return g[1].toUpperCase();
+  });
+};
 
-    Blush.BaseClass.extend = function extend() {
-        var parentClass = this;
-        var childClass = Blush.createConstructor();
-        var extensions = Array.prototype.slice.call(arguments);
-        extensions.unshift(parentClass.prototype);
-        extensions.unshift(childClass.prototype);
-        Object.assign.apply(null, extensions);
-        childClass.prototype.constructor = childClass;
-        childClass.extend = extend;
-        return childClass;
-    };
+Blush.createConstructor = function() {
+  var klass = function klass() {
+    if (!(this instanceof klass)) {
+      throw new Error('This is a class, and cannot be called without the new keyword.');
+    }
+    this.__initialize.apply(this, arguments);
+  };
+  return klass;
+};
 
-    Blush.utils.typeOf = function typeOf(value) {
-        var output = Object.prototype.toString.call(value);
-        var matches = output.match(/\[object (.*)\]/);
-        return matches && matches[1];
-    };
+Blush.BaseClass = Blush.createConstructor();
 
-    ['String', 'Array', 'Object', 'Date', 'Regex', 'Number', 'Function', 'Null', 'Undefined', 'Boolean'].forEach(function(type) {
-        Blush.utils['is' + type] = function isA(value) {
-            return Blush.utils.typeOf(value) === type;
-        };
-    });
+Blush.BaseClass.prototype.__initialize = function () {
+  this._initialize.apply(this, arguments);
+  this.initialize.apply(this, arguments);
+};
 
-    Blush.utils.isNil = function isNil(value) {
-        return Blush.utils.isUndefined(value) || Blush.utils.isNull(value);
-    };
+Blush.BaseClass.prototype.initialize = function () {};
 
-    Blush.utils.camelize = function camelize(word) {
-        return word.replace(/(_\w)/g, function(g) {
-            return g[1].toUpperCase();
-        });
-    };
+Blush.BaseClass.extend = function extend() {
+  var parentClass = this;
+  var childClass  = Blush.createConstructor();
+  var extensions = Array.prototype.slice.call(arguments);
+  extensions.unshift(parentClass.prototype);
+  extensions.unshift(childClass.prototype);
+  Object.assign.apply(null, extensions);
+  childClass.prototype.constructor = childClass;
+  childClass.extend = extend;
+  return childClass;
+};
 
-    Blush.utils.escapeHTML = function escapeHTML(text) {
-        if (!Blush.utils.isString(text)) {
-            return text;
-        }
+Blush.Config = Blush.BaseClass.extend({
+  _initialize: function(config, klass, app) {
+    this.defaultConfig = klass.defaultConfig;
+    this.config = config;
+    this.app = app;
+  },
 
-        var entityMap = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;',
-            '/': '&#x2F;',
-            '`': '&#x60;',
-            '=': '&#x3D;'
-        };
+  get: function(key) {
+    if (this['_' + key] !== undefined) { return this['_' + key];}
 
-        return String(text).replace(/[&<>"'`=\/]/g, function fromEntityMap(s) {
-            return entityMap[s];
-        });
-    };
+    var value;
+    if (this.config[key] !== undefined) {
+      value = this.config[key];
+    } else {
+      value = this.defaultConfig[key];
+    }
 
-    Blush.ViewModel = Blush.BaseClass.extend({
-        _initialize: function(opts) {
-            opts = opts || {};
-            var app = opts.app || {};
-            this.data = app.data && app.data();
-            this.initialize.apply(this, arguments);
-        },
+    this['_' + key] = value;
+    return value;
+  },
 
-        json: function() {
-            return new Blush.ViewModel.ExtractJSON(this).run();
-        }
-    }, Blush.utils);
+  getFromApp: function(key) {
+    if (!this.app) { return; }
 
-    Blush.ViewModel.ExtractJSON = Blush.BaseClass.extend({
-        _initialize: function(viewModel) {
-            this.json = {};
-            this.viewModel = viewModel;
-            this.data = viewModel.data;
-            this.attributes = viewModel.attributes || [];
-            this.unescapedAttributes = viewModel.unescapedAttributes || [];
-        },
+    var name = this.get('name');
+    if (!name) { return; }
 
-        run: function() {
-            this.addEscapedAttributes();
-            //this.addUnescapedAttributes();
-            return this.json;
-        },
+    var collectionName = key + 's';
+    var value = this.app[collectionName] && this.app[collectionName][name];
+    if (value === undefined) {
+      value = this.defaultConfig[key];
+    }
 
-        addEscapedAttributes: function() {
-            this.attributes.forEach(function(name) {
-                this.json[name] = this.escapedValueFor(name);
-            }.bind(this));
-        },
+    return value;
+  }
+});
 
-        escapedValueFor: function(name) {
-            var value = this.valueFor(name);
-            return Blush.utils.escapeHTML(value);
-        },
+Blush.ViewModel = Blush.BaseClass.extend({
+  _initialize: function(opts) {
+    opts = opts || {};
+    var app = opts.app || {};
+    this.data = app.data && app.data();
+  },
 
-        valueFor: function(name) {
-            var camelName = Blush.utils.camelize(name);
-            var local = this.viewModel[name] || this.viewModel[camelName];
-            if (local !== undefined && Blush.utils.isFunction(local)) {
-                local = local();
-            }
-            return local || this.data[name];
-        }
-    });
+  json: function() {
+    return new Blush.ViewModel.ExtractJSON(this).run();
+  }
+}, Blush.utils);
 
-    Blush.View = Blush.BaseClass.extend({
-        _initialize: function(opts) {
-            opts = opts || {};
-            this.app = opts.app;
-            this.dom = this.findDom(opts) || document.createElement('div');
-            this.initialize.apply(this, arguments);
-        },
+Blush.ViewModel.ExtractJSON = Blush.BaseClass.extend({
+  _initialize: function(viewModel) {
+    this.json                 = {};
+    this.viewModel            = viewModel;
+    this.data                 = viewModel.data;
+    this.attributes           = viewModel.attributes || [];
+    this.unescapedAttributes  = viewModel.unescapedAttributes || [];
+  },
 
-        render: function() {
-            var attachmentMethod = this.attachmentMethod();
-            var rendered = this.renderTemplate();
-            // TODO: switch to more efficient if test 
-            // View.attachmentType.APPEND = 0; // etc
-            if (attachmentMethod === 'append') {
-                this.dom.innerHTML += rendered;
-            } else if (attachmentMethod === 'replace') {
-                this.dom.innerHTML = rendered;
-            } else {
-                this.dom.innerHTML = rendered + this.dom.innerHTML;
-            }
-        },
+  run: function() {
+    this.addAttributes();
+    return this.json;
+  },
 
-        findDom: function(opts) {
-            return new Blush.View.DomFinder(this.app, opts.parent, this.parentSelector()).dom();
-        },
+  addAttributes: function () {
+    this.attributes.forEach(function(name) {
+      this.json[name] = this.valueFor(name);
+    }.bind(this));
+  },
 
-        renderTemplate: function() {
-            return Mario.render(this.template(), this.viewModel());
-        },
+  valueFor: function(name) {
+    var camelName = Blush.utils.camelize(name);
+    var local = this.viewModel[name] || this.viewModel[camelName];
+    if (local !== undefined && Blush.utils.isFunction(local)) {
+      local = local();
+    }
+    return local || this.data[name];
+  }
+});
 
-        template: function() {
-            return this.getFromApp('template') || this._defaultConfig['template'];
-        },
+Blush.View = Blush.BaseClass.extend({
+  _initialize: function(opts) {
+    opts = opts || {};
+    this.app = opts.app;
+    this._config = new Blush.Config(this.config, Blush.View, this.app);
+    this.dom = this.findDom(opts) || document.createElement('div');
+  },
 
-        viewModel: function() {
-            return this.getFromApp('viewModel') || this._defaultConfig['viewModel'];
-        },
+  render: function() {
+    var renderVia = this.renderVia();
+    var rendered  = this.renderTemplate();
+    // TODO: switch to more efficient if test 
+    // View.attachmentType.APPEND = 0; // etc
+    if (renderVia === 'append') {
+      this.dom.innerHTML += rendered;
+    } else if (renderVia === 'replace') {
+      this.dom.innerHTML = rendered;
+    } else {
+      this.dom.innerHTML = rendered + this.dom.innerHTML;
+    }
+  },
 
-        parentSelector: function() {
-            return this.getConfig('parentSelector') || this._defaultConfig['parentSelector'];
-        },
+  findDom: function(opts) {
+    return new Blush.View.DomFinder(this.app, opts.parent, this.selector()).dom();
+  },
 
-        attachmentMethod: function() {
-            return this.getConfig('attachmentMethod') || this._defaultConfig['attachmentMethod'];
-        },
+  renderTemplate: function() {
+    return Mario.render(this.template(), this.viewModel());
+  },
 
-        resolveConfig: function() {
-            if (this._config) {
-                return;
-            }
+  template: function() {
+    return this._config.getFromApp('template');
+  },
 
-            if (this.config && Blush.utils.isFunction(this.config)) {
-                this._config = this.config();
-            } else if (this.config) {
-                this._config = this.config;
-            } else {
-                this._config = {};
-            }
-        },
+  viewModel: function() {
+    return this._config.getFromApp('viewModel');
+  },
 
-        getFromApp: function(key) {
-            if (!this.app) {
-                return;
-            }
-            var name = this.getConfig('name');
-            if (!name) {
-                return;
-            }
-            return this.app[key + 's'][name];
-        },
+  selector: function() {
+    return this._config.get('selector');
+  },
 
-        getConfig: function(type) {
-            var value;
+  renderVia: function() {
+    return this._config.get('renderVia');
+  }
+});
 
-            this.resolveConfig();
+Blush.View.defaultConfig = {
+  viewModel: {},
+  template: 'Template not found!',
+  renderVia: 'append', // prepend, or replace
+  selector: undefined
+};
 
-            if (this._config[type] !== undefined) {
-                value = this._config[type];
-            } else {
-                value = this._defaultConfig[type];
-            }
 
-            return value;
-        },
+Blush.View.DomFinder = Blush.BaseClass.extend({
+  _initialize: function(app, parentDom, selector) {
+    this.app = app;
+    this.parentDom = parentDom;
+    this.selector = selector;
+  },
 
-        _defaultConfig: {
-            viewModel: {},
-            template: 'Template not found!',
-            attachmentMethod: 'append', // prepend, or replace
-            parentSelector: undefined
-        }
-    });
+  parent: function() {
+    return this.parentDom || this.app.dom;
+  },
 
-    Blush.View.DomFinder = Blush.BaseClass.extend({
-        _initialize: function(app, parentDom, selector) {
-            this.app = app;
-            this.parentDom = parentDom;
-            this.selector = selector;
-        },
+  dom: function() {
+    var parent = this.parent();
+    if (!this.selector) { return parent; }
+    var found = parent.querySelector(this.selector);
+    return found || parent;
+  }
+});
 
-        parent: function() {
-            return this.parentDom || this.app.dom;
-        },
 
-        dom: function() {
-            var parent = this.parent();
-            if (!this.selector) {
-                return parent;
-            }
-            var found = parent.querySelector(this.selector);
-            return found || parent;
-        }
-    });
-
+global.Blush = Blush;
 })(this);

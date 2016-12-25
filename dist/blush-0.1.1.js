@@ -410,36 +410,6 @@
 
     Object.assign = Object.assign || Blush.polyfills.objectAssign;
 
-    Blush.createConstructor = function() {
-        var klass = function klass() {
-            if (!(this instanceof klass)) {
-                throw new Error('This is a class, and cannot be called without the new keyword.');
-            }
-            this._initialize.apply(this, arguments);
-        };
-        return klass;
-    };
-
-    Blush.BaseClass = Blush.createConstructor();
-
-    Blush.BaseClass.prototype._initialize = function() {
-        this.initialize.apply(this, arguments);
-    };
-
-    Blush.BaseClass.prototype.initialize = function() {};
-
-    Blush.BaseClass.extend = function extend() {
-        var parentClass = this;
-        var childClass = Blush.createConstructor();
-        var extensions = Array.prototype.slice.call(arguments);
-        extensions.unshift(parentClass.prototype);
-        extensions.unshift(childClass.prototype);
-        Object.assign.apply(null, extensions);
-        childClass.prototype.constructor = childClass;
-        childClass.extend = extend;
-        return childClass;
-    };
-
     Blush.utils.typeOf = function typeOf(value) {
         var output = Object.prototype.toString.call(value);
         var matches = output.match(/\[object (.*)\]/);
@@ -462,33 +432,85 @@
         });
     };
 
-    Blush.utils.escapeHTML = function escapeHTML(text) {
-        if (!Blush.utils.isString(text)) {
-            return text;
-        }
-
-        var entityMap = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;',
-            '/': '&#x2F;',
-            '`': '&#x60;',
-            '=': '&#x3D;'
+    Blush.createConstructor = function() {
+        var klass = function klass() {
+            if (!(this instanceof klass)) {
+                throw new Error('This is a class, and cannot be called without the new keyword.');
+            }
+            this.__initialize.apply(this, arguments);
         };
-
-        return String(text).replace(/[&<>"'`=\/]/g, function fromEntityMap(s) {
-            return entityMap[s];
-        });
+        return klass;
     };
+
+    Blush.BaseClass = Blush.createConstructor();
+
+    Blush.BaseClass.prototype.__initialize = function() {
+        this._initialize.apply(this, arguments);
+        this.initialize.apply(this, arguments);
+    };
+
+    Blush.BaseClass.prototype.initialize = function() {};
+
+    Blush.BaseClass.extend = function extend() {
+        var parentClass = this;
+        var childClass = Blush.createConstructor();
+        var extensions = Array.prototype.slice.call(arguments);
+        extensions.unshift(parentClass.prototype);
+        extensions.unshift(childClass.prototype);
+        Object.assign.apply(null, extensions);
+        childClass.prototype.constructor = childClass;
+        childClass.extend = extend;
+        return childClass;
+    };
+
+    Blush.Config = Blush.BaseClass.extend({
+        _initialize: function(config, klass, app) {
+            this.defaultConfig = klass.defaultConfig;
+            this.config = config;
+            this.app = app;
+        },
+
+        get: function(key) {
+            if (this['_' + key] !== undefined) {
+                return this['_' + key];
+            }
+
+            var value;
+            if (this.config[key] !== undefined) {
+                value = this.config[key];
+            } else {
+                value = this.defaultConfig[key];
+            }
+
+            this['_' + key] = value;
+            return value;
+        },
+
+        getFromApp: function(key) {
+            if (!this.app) {
+                return;
+            }
+
+            var name = this.get('name');
+            if (!name) {
+                return;
+            }
+
+            var collectionName = key + 's';
+            var value = this.app[collectionName] && this.app[collectionName][name];
+            if (value === undefined) {
+                value = this.defaultConfig[key];
+            }
+
+            return value;
+        }
+    });
 
     Blush.ViewModel = Blush.BaseClass.extend({
         _initialize: function(opts) {
             opts = opts || {};
             var app = opts.app || {};
             this.data = app.data && app.data();
-            this.initialize.apply(this, arguments);
         },
 
         json: function() {
@@ -506,20 +528,14 @@
         },
 
         run: function() {
-            this.addEscapedAttributes();
-            //this.addUnescapedAttributes();
+            this.addAttributes();
             return this.json;
         },
 
-        addEscapedAttributes: function() {
+        addAttributes: function() {
             this.attributes.forEach(function(name) {
-                this.json[name] = this.escapedValueFor(name);
+                this.json[name] = this.valueFor(name);
             }.bind(this));
-        },
-
-        escapedValueFor: function(name) {
-            var value = this.valueFor(name);
-            return Blush.utils.escapeHTML(value);
         },
 
         valueFor: function(name) {
@@ -536,18 +552,18 @@
         _initialize: function(opts) {
             opts = opts || {};
             this.app = opts.app;
+            this._config = new Blush.Config(this.config, Blush.View, this.app);
             this.dom = this.findDom(opts) || document.createElement('div');
-            this.initialize.apply(this, arguments);
         },
 
         render: function() {
-            var attachmentMethod = this.attachmentMethod();
+            var renderVia = this.renderVia();
             var rendered = this.renderTemplate();
             // TODO: switch to more efficient if test 
             // View.attachmentType.APPEND = 0; // etc
-            if (attachmentMethod === 'append') {
+            if (renderVia === 'append') {
                 this.dom.innerHTML += rendered;
-            } else if (attachmentMethod === 'replace') {
+            } else if (renderVia === 'replace') {
                 this.dom.innerHTML = rendered;
             } else {
                 this.dom.innerHTML = rendered + this.dom.innerHTML;
@@ -555,7 +571,7 @@
         },
 
         findDom: function(opts) {
-            return new Blush.View.DomFinder(this.app, opts.parent, this.parentSelector()).dom();
+            return new Blush.View.DomFinder(this.app, opts.parent, this.selector()).dom();
         },
 
         renderTemplate: function() {
@@ -563,67 +579,29 @@
         },
 
         template: function() {
-            return this.getFromApp('template') || this._defaultConfig['template'];
+            return this._config.getFromApp('template');
         },
 
         viewModel: function() {
-            return this.getFromApp('viewModel') || this._defaultConfig['viewModel'];
+            return this._config.getFromApp('viewModel');
         },
 
-        parentSelector: function() {
-            return this.getConfig('parentSelector') || this._defaultConfig['parentSelector'];
+        selector: function() {
+            return this._config.get('selector');
         },
 
-        attachmentMethod: function() {
-            return this.getConfig('attachmentMethod') || this._defaultConfig['attachmentMethod'];
-        },
-
-        resolveConfig: function() {
-            if (this._config) {
-                return;
-            }
-
-            if (this.config && Blush.utils.isFunction(this.config)) {
-                this._config = this.config();
-            } else if (this.config) {
-                this._config = this.config;
-            } else {
-                this._config = {};
-            }
-        },
-
-        getFromApp: function(key) {
-            if (!this.app) {
-                return;
-            }
-            var name = this.getConfig('name');
-            if (!name) {
-                return;
-            }
-            return this.app[key + 's'][name];
-        },
-
-        getConfig: function(type) {
-            var value;
-
-            this.resolveConfig();
-
-            if (this._config[type] !== undefined) {
-                value = this._config[type];
-            } else {
-                value = this._defaultConfig[type];
-            }
-
-            return value;
-        },
-
-        _defaultConfig: {
-            viewModel: {},
-            template: 'Template not found!',
-            attachmentMethod: 'append', // prepend, or replace
-            parentSelector: undefined
+        renderVia: function() {
+            return this._config.get('renderVia');
         }
     });
+
+    Blush.View.defaultConfig = {
+        viewModel: {},
+        template: 'Template not found!',
+        renderVia: 'append', // prepend, or replace
+        selector: undefined
+    };
+
 
     Blush.View.DomFinder = Blush.BaseClass.extend({
         _initialize: function(app, parentDom, selector) {
@@ -646,4 +624,6 @@
         }
     });
 
+
+    global.Blush = Blush;
 })(this);
