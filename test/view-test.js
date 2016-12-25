@@ -9,7 +9,7 @@ describe('Blush.View', function() {
   });
 
   describe('basic rendering', function() {
-    it('when initialized with an app, will store it for use it with the configured name to render', function() {
+    it('will store the for use it with the configured name to render', function() {
       View = Blush.View.extend({
         config: {
           name: 'hello-world'
@@ -21,6 +21,19 @@ describe('Blush.View', function() {
 
       view.render();
       expect(view.dom.innerHTML).toBe('<h1>hello sulking world</h1>');
+    });
+
+    it('will fail gracefully when the template is not found', function() {
+      View = Blush.View.extend({
+        config: {
+          name: 'hello-world'
+        }
+      });
+
+      view = new View({app: {}});
+
+      view.render();
+      expect(view.dom.innerHTML).toBe('Template not found!');
     });
   });
 

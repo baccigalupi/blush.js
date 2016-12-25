@@ -21,12 +21,16 @@ Blush.Config = Blush.BaseClass.extend({
 
   getFromApp: function(key) {
     if (!this.app) { return; }
+
     var name = this.get('name');
     if (!name) { return; }
-    var value = this.app[key + 's'][name];
+
+    var collectionName = key + 's';
+    var value = this.app[collectionName] && this.app[collectionName][name];
     if (value === undefined) {
       value = this.defaultConfig[key];
     }
+
     return value;
   }
 });

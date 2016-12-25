@@ -2,12 +2,12 @@ Blush.View = Blush.BaseClass.extend({
   _initialize: function(opts) {
     opts = opts || {};
     this.app = opts.app;
-    this._config = new Blush.View.Config(this.config, Blush.View, this.app);
+    this._config = new Blush.Config(this.config, Blush.View, this.app);
     this.dom = this.findDom(opts) || document.createElement('div');
   },
 
   render: function() {
-    var renderVia = this._config.renderVia();
+    var renderVia = this.renderVia();
     var rendered  = this.renderTemplate();
     // TODO: switch to more efficient if test 
     // View.attachmentType.APPEND = 0; // etc
@@ -21,11 +21,27 @@ Blush.View = Blush.BaseClass.extend({
   },
 
   findDom: function(opts) {
-    return new Blush.View.DomFinder(this.app, opts.parent, this._config.selector()).dom();
+    return new Blush.View.DomFinder(this.app, opts.parent, this.selector()).dom();
   },
 
   renderTemplate: function() {
-    return Mario.render(this._config.template(), this._config.viewModel());
+    return Mario.render(this.template(), this.viewModel());
+  },
+
+  template: function() {
+    return this._config.getFromApp('template');
+  },
+
+  viewModel: function() {
+    return this._config.getFromApp('viewModel');
+  },
+
+  selector: function() {
+    return this._config.get('selector');
+  },
+
+  renderVia: function() {
+    return this._config.get('renderVia');
   }
 });
 
@@ -36,24 +52,6 @@ Blush.View.defaultConfig = {
   selector: undefined
 };
 
-
-Blush.View.Config = Blush.Config.extend({
-  template: function() {
-    return this.getFromApp('template');
-  },
-
-  viewModel: function() {
-    return this.getFromApp('viewModel');
-  },
-
-  selector: function() {
-    return this.get('selector');
-  },
-
-  renderVia: function() {
-    return this.get('renderVia');
-  }
-});
 
 Blush.View.DomFinder = Blush.BaseClass.extend({
   _initialize: function(app, parentDom, selector) {
