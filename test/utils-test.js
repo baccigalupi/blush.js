@@ -1,10 +1,30 @@
 describe('Blush.utils.camelize', function () {
-  it('converts a single word to title cased', function () {
+  it('converts a single word to camelcase', function () {
     expect(Blush.utils.camelize('foo')).toBe('foo');
+  });
+
+  it('converts dashes to capitalized next letter', function () {
+    expect(Blush.utils.camelize('foo-bar')).toBe('fooBar');
   });
 
   it('translates an underscore before a letter to a capitalized letter', function () {
     expect(Blush.utils.camelize('foo_bar')).toBe('fooBar');
+  });
+});
+
+describe('Blush.utils.capitalize', function() {
+  it('converts first char to capitalize', function() {
+    expect(Blush.utils.capitalize('foo')).toBe('Foo');
+  });
+
+  it('does not make a mess if the first char is already cap', function() {
+    expect(Blush.utils.capitalize('Foo')).toBe('Foo');
+  });
+});
+
+describe('Blush.utils.classify', function() {
+  it('camelcases and converts the first char to capital', function() {
+    expect(Blush.utils.classify('what-is-that')).toBe('WhatIsThat');
   });
 });
 

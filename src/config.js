@@ -21,20 +21,21 @@ Blush.Config = Blush.BaseClass.extend({
   },
 
   getFromApp: function(key) {
-    if (!this.appClass) { return; }
-
     var name = this.get('name');
-    if (!name) { return; }
+    if (!this.appClass || !name) { return; }
 
-    var collectionName = key + 's';
-    collectionName = collectionName.replace(/^[a-z]/i, function(character) {
-      return character.toUpperCase();
-    });
-    var value = this.appClass[collectionName] && this.appClass[collectionName][name];
+    var collection = this.appCollection(key);
+    var value = collection[name] || collection[Blush.utils.classify(name)];
     if (value === undefined) {
       value = this.defaultConfig[key];
     }
 
     return value;
+  },
+
+  appCollection: function(key) {
+    var collectionName = key + 's';
+    collectionName = Blush.utils.capitalize(collectionName);
+    return this.appClass[collectionName] || {};
   }
 });

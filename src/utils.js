@@ -15,7 +15,17 @@ Blush.utils.isNil = function isNil(value) {
 };
 
 Blush.utils.camelize = function camelize(word) {
-  return word.replace(/(_\w)/g, function (g) {
+  return word.replace(/([_\-]\w)/g, function (g) {
     return g[1].toUpperCase();
   });
+};
+
+Blush.utils.capitalize = function capitalize(word) {
+  return word.replace(/^[a-z]/, function(c) {
+    return c.toUpperCase();
+  });
+};
+
+Blush.utils.classify = function classify(word) {
+  return Blush.utils.capitalize(Blush.utils.camelize(word));
 };
