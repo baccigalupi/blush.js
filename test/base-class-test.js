@@ -60,4 +60,9 @@ describe('Blush.BaseClass', function () {
     var instance = new NewClass();
     expect(instance.constructor).toEqual(NewClass);
   });
+
+  it('does fine without any setup', function() {
+    var Klass = Blush.BaseClass.extend();
+    expect(function () { new Klass(); }).not.toThrow();
+  });
 });
