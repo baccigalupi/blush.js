@@ -449,6 +449,7 @@
         this.initialize.apply(this, arguments);
     };
 
+    Blush.BaseClass.prototype._initialize = function() {};
     Blush.BaseClass.prototype.initialize = function() {};
 
     Blush.BaseClass.extend = function extend() {
