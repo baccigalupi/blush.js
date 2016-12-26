@@ -3,8 +3,10 @@ describe('Blush.View', function() {
 
   beforeEach(function() {
     app = {
-      templates: {'hello-world': '<h1>hello {{type}} world</h1>'},
-      viewModels: {'hello-world': {type: 'sulking'}}
+      constructor: {
+        Templates: {'hello-world': '<h1>hello {{type}} world</h1>'},
+        ViewModels: {'hello-world': {type: 'sulking'}}
+      }
     };
   });
 
