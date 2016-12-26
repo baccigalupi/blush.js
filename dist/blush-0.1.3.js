@@ -469,6 +469,7 @@
             this.defaultConfig = klass.defaultConfig;
             this.config = config;
             this.app = app;
+            this.appClass = app.constructor;
         },
 
         get: function(key) {
@@ -488,7 +489,7 @@
         },
 
         getFromApp: function(key) {
-            if (!this.app) {
+            if (!this.appClass) {
                 return;
             }
 
@@ -498,7 +499,10 @@
             }
 
             var collectionName = key + 's';
-            var value = this.app[collectionName] && this.app[collectionName][name];
+            collectionName = collectionName.replace(/^[a-z]/i, function(character) {
+                return character.toUpperCase();
+            });
+            var value = this.appClass[collectionName] && this.appClass[collectionName][name];
             if (value === undefined) {
                 value = this.defaultConfig[key];
             }
