@@ -2,10 +2,15 @@ describe('Blush.View', function() {
   var app, View, view;
 
   beforeEach(function() {
+    var ViewModel = Blush.ViewModel.extend({
+      attributes: ['type'],
+      type: 'sulking'
+    });
+
     app = {
       constructor: {
         Templates: {'hello-world': '<h1>hello {{type}} world</h1>'},
-        ViewModels: {'HelloWorld': {type: 'sulking'}}
+        ViewModels: {'HelloWorld': ViewModel}
       }
     };
   });
