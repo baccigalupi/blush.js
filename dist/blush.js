@@ -216,6 +216,11 @@ Blush.View = Blush.BaseClass.extend({
   },
 
   viewModel: function() {
+    var viewModelClass = this.viewModelClass();
+    return new viewModelClass({app: this.app}).json();
+  },
+
+  viewModelClass: function() {
     return this._config.getFromApp('viewModel');
   },
 
@@ -229,7 +234,11 @@ Blush.View = Blush.BaseClass.extend({
 });
 
 Blush.View.defaultConfig = {
-  viewModel: {},
+  viewModel: function() {
+    return {
+      json: function() { return {}; }
+    };
+  },
   template: 'Template not found!',
   renderVia: 'append', // prepend, or replace
   selector: undefined
