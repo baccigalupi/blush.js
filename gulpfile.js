@@ -89,7 +89,8 @@ gulp.task('concatSource', function () {
     './src/config.js',
     './src/view-model.js',
     './src/view.js',
-    './src/app.js'
+    './src/app.js',
+    './src/events.js'
   ];
   return concatAndWrap(sources, 'blush.js');
 });
