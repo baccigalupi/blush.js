@@ -80,6 +80,7 @@ gulp.task('clean', function () {
 });
 
 gulp.task('concatSource', function () {
+  // TODO: separate legacy and modern for separate build packs
   var sources = [
     './src/declaration.js',
     './src/polyfills/array-for-each.js',
@@ -90,7 +91,9 @@ gulp.task('concatSource', function () {
     './src/view-model.js',
     './src/view.js',
     './src/app.js',
-    './src/events.js'
+    './src/events.js',
+    './src/dom-rebroadcaster.js',
+    './src/dom-rebroadcaster/hash-change.js'
   ];
   return concatAndWrap(sources, 'blush.js');
 });

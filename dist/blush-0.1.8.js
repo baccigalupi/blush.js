@@ -691,6 +691,40 @@
         }
     });
 
+    Blush.DomRebroadcaster = Blush.BaseClass.extend({
+        _initialize: function(events, dom) {
+            this.events = events;
+            this.dom = dom;
+            this.listener = this.rebroadcast.bind(this);
+            this.dom.addEventListener(this.domEventName, this.listener);
+        },
+
+        /*
+         * Subclasses must set attributes:
+         *    'domEventName'
+         *    'republishEventName'
+         */
+
+        rebroadcast: function() {
+            throw new Error('Implement me, and also "domEventName" and "republishEventName"');
+            // this.publish(this.republishEventName, SOME_DATA_HERE);
+        },
+
+        publish: function() {
+            this.events.trigger.apply(this.events, arguments);
+        }
+    });
+
+    Blush.DomRebroadcaster.HashChange = Blush.DomRebroadcaster.extend({
+        domEventName: 'hashchange',
+        republishEventName: 'data:route',
+
+        rebroadcast: function() {
+            var hash = window.location.hash;
+            this.publish(this.republishEventName, hash.slice(1));
+        }
+    });
+
 
     global.Blush = Blush;
 })(this);

@@ -1,4 +1,4 @@
-Blush.DomBroadcasters.HashChange = Blush.BaseClass.extend({
+Blush.DomRebroadcaster = Blush.BaseClass.extend({
   _initialize: function(events, dom) {
     this.events = events;
     this.dom = dom;
@@ -6,12 +6,15 @@ Blush.DomBroadcasters.HashChange = Blush.BaseClass.extend({
     this.dom.addEventListener(this.domEventName, this.listener);
   },
 
-  domEventName:       'hashchange',
-  republishEventName: 'data:route',
+  /*
+   * Subclasses must set attributes:
+   *    'domEventName'
+   *    'republishEventName'
+   */
 
   rebroadcast: function() {
-    var hash = window.location.hash;
-    this.publish(this.republishEventName, hash.slice(1));
+    throw new Error('Implement me, and also "domEventName" and "republishEventName"');
+    // this.publish(this.republishEventName, SOME_DATA_HERE);
   },
 
   publish: function() {
