@@ -62,6 +62,8 @@ Mario.js
 * client and server versions?
 
 Next:
+* views, viewModels, templates found via different methods, roll-up?
+* immutable data store
 * url/router/history thing
 * view event propogation
 * fetch polyfill

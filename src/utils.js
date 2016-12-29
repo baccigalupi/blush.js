@@ -4,7 +4,7 @@ Blush.utils.typeOf = function typeOf(value) {
   return matches && matches[1];
 };
 
-['String', 'Array', 'Object', 'Date', 'Regex', 'Number', 'Function', 'Null', 'Undefined', 'Boolean'].forEach(function(type) {
+['String', 'Array', 'Object', 'Date', 'RegExp', 'Number', 'Function', 'Null', 'Undefined', 'Boolean'].forEach(function(type) {
   Blush.utils['is' + type] = function isA(value) {
     return Blush.utils.typeOf(value) === type;
   };
