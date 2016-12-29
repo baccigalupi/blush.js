@@ -39,7 +39,7 @@ Blush.utils.typeOf = function typeOf(value) {
   return matches && matches[1];
 };
 
-['String', 'Array', 'Object', 'Date', 'Regex', 'Number', 'Function', 'Null', 'Undefined', 'Boolean'].forEach(function(type) {
+['String', 'Array', 'Object', 'Date', 'RegExp', 'Number', 'Function', 'Null', 'Undefined', 'Boolean'].forEach(function(type) {
   Blush.utils['is' + type] = function isA(value) {
     return Blush.utils.typeOf(value) === type;
   };
@@ -301,6 +301,87 @@ Blush.Events = Blush.BaseClass.extend({
     this.callbacks[eventName].forEach(function(callback) {
       callback.apply(callback, args);
     });
+  }
+});
+
+Blush.Route = Blush.BaseClass.extend({
+  initialize: function(app, matcher, viewName) {
+    this.app = app;
+    this.Views = app.constructor.Views;
+    this.matcher  = matcher;
+    this.viewName = viewName;
+    this.paramNames = [];
+    this.disassembleMatchers();
+  },
+
+  disassembleMatchers: function() {
+    var matcher = this.matcher;
+    if ( matcher.split(':').length === 1 &&
+         matcher.split('*').length === 1) {
+      this.isSimple = true;
+    } else {
+      this.matcherRegex = this.convertMatcher();
+    }
+  },
+
+  namedParam: /(\(\?)?:\w+/g,
+  splatParam: /\*\w+/g,
+
+  // NOTE from backbone, license MIT
+  convertMatcher: function() {
+    var escapeRegExp  = /[\-{}\[\]+?.,\\\^$|#\s]/g;
+    var self = this;
+    var route = this.matcher
+              .replace(escapeRegExp, '\\$&')
+              .replace(this.namedParam, function(key) {
+                self.paramNames.push(key.slice(1));
+                return '([^/?]+)';
+              })
+              .replace(this.splatParam, function(key) {
+                self.paramNames.push(key.slice(1));
+                return '([^?]*?)';
+              });
+    return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$');
+  },
+
+  match: function(route) {
+    if (this.isSimple) { return route === this.matcher; }
+    return this.matcherRegex.test(route);
+  },
+
+  ViewClass: function() {
+    if (this._ViewClass) { return this._ViewClass; }
+
+    var Views = this.Views;
+    var viewClassName, config, ViewClass;
+
+    for (viewClassName in Views) {
+      config = Views[viewClassName].prototype.config || {};
+      if (config.name === this.viewName) {
+        ViewClass = Views[viewClassName];
+        this._ViewClass = ViewClass;
+        return ViewClass;
+      }
+    }
+  },
+
+  render: function(route) {
+    var params = this.extractParams(route);
+    return new this.ViewClass({app: this.app, params: params});
+  },
+
+  extractParams: function(route) {
+    var params = {route: route};
+    if (this.isSimple) { return params; }
+
+    var self = this;
+    var values = this.matcherRegex.exec(route).slice(1);
+    values.forEach(function(value, i) {
+      if (!value) { return; }
+      params[self.paramNames[i]] = value;
+    });
+
+    return params;
   }
 });
 
