@@ -12,7 +12,8 @@ Blush.Events = Blush.BaseClass.extend({
   trigger: function() {
     var args = Array.prototype.slice.call(arguments);
     var eventName = args[0];
-    this.callbacks[eventName].forEach(function(callback) {
+    var callbacks = this.callbacks[eventName] || [];
+    callbacks.forEach(function(callback) {
       callback.apply(callback, args);
     });
   }
