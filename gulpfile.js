@@ -83,7 +83,7 @@ gulp.task('concatSource', function () {
   // TODO: separate legacy and modern for separate build packs
   var sources = [
     './src/declaration.js',
-    './src/polyfills/array-for-each.js',
+    './src/polyfills/array.js',
     './src/polyfills/object-assign.js',
     './src/utils.js',
     './src/base-class.js',

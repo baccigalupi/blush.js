@@ -1,11 +1,16 @@
 describe('Blush.Route', function() {
-  var route, app;
+  var route, app, rendered;
 
   beforeEach(function() {
     app = {
       constructor: {
         Views: {
-          HelloWorld: Blush.View.extend({config: {name: 'hello-world'}})
+          HelloWorld: Blush.View.extend({
+            config: {name: 'hello-world'},
+            render: function() {
+              rendered = true;
+            }
+          })
         }
       }
     };
@@ -121,6 +126,16 @@ describe('Blush.Route', function() {
       expect(route.ViewClass()).toBe(undefined);
       route = new Blush.Route(app, 'welcome/friends', 'hello-world');
       expect(route.ViewClass()).toBe(app.constructor.Views.HelloWorld);
+    });
+  });
+
+  describe('render', function() {
+    it('calls render on the view', function() {
+      route = new Blush.Route(app, 'page/*page', 'static-pages');
+      expect(route.ViewClass()).toBe(undefined);
+      route = new Blush.Route(app, 'welcome/friends', 'hello-world');
+      route.render();
+      expect(rendered).toBe(true);
     });
   });
 });

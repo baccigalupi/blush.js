@@ -60,8 +60,12 @@ Blush.Route = Blush.BaseClass.extend({
   },
 
   render: function(route) {
+    var ViewClass = this.ViewClass();
+    if (!ViewClass) { return; }
+
     var params = this.extractParams(route);
-    return new this.ViewClass({app: this.app, params: params});
+    var view =  new ViewClass({app: this.app, params: params});
+    view.render();
   },
 
   extractParams: function(route) {

@@ -12,3 +12,16 @@ describe('Blush.polyfills.arrayForEach', function() {
     expect(results[2]).toEqual({element: 3, index: 2, fullArray: [1,2,3]});
   });
 });
+
+describe('Blush.polyfills.arrayFind', function() {
+  it('returns the first element to match', function() {
+    let array = [1, 2, 3];
+
+    var result = Blush.polyfills.arrayFind.call(array, function(element, index, fullArray) {
+      expect(fullArray).toBe(array);
+      return element > 1;
+    });
+
+    expect(result).toEqual(2);
+  });
+});
