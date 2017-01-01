@@ -392,6 +392,21 @@
 
     Array.prototype.forEach = Array.prototype.forEach || Blush.polyfills.arrayForEach;
 
+    Blush.polyfills.arrayFind = function arrayFind(iterator) {
+        var length = this.length;
+        var i, element, value;
+
+        for (i = 0; i < length; i++) {
+            element = this[i];
+            value = iterator(element, i, this);
+            if (value) {
+                return element;
+            }
+        }
+    };
+
+    Array.prototype.find = Array.prototype.find || Blush.polyfills.arrayFind;
+
     Blush.polyfills.objectAssign = function() {
         var target = arguments[0];
         var current, key, argumentIndex;
@@ -757,11 +772,17 @@
         },
 
         render: function(route) {
+            var ViewClass = this.ViewClass();
+            if (!ViewClass) {
+                return;
+            }
+
             var params = this.extractParams(route);
-            return new this.ViewClass({
+            var view = new ViewClass({
                 app: this.app,
                 params: params
             });
+            view.render();
         },
 
         extractParams: function(route) {
