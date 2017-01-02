@@ -42,12 +42,14 @@ describe('Blush.BaseClass', function () {
 
   it('inherits many levels deep', function() {
     var ThirdGen = NewClass.extend({
-      gen: 3
+      initialize: function() {
+        this.gen = 3;
+      }
     });
     var instance = new ThirdGen();
 
     expect(instance.gen).toEqual(3);
-    expect(instance.initialized).toEqual(true);
+    expect(instance._initialized).toEqual(true);
   });
 
   it('throws an error if the class is called as a normal function', function () {

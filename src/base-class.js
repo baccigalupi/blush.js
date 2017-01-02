@@ -21,11 +21,10 @@ Blush.BaseClass.prototype.initialize = function () {};
 Blush.BaseClass.extend = function extend() {
   var parentClass = this;
   var childClass  = Blush.createConstructor();
-  var extensions = Array.prototype.slice.call(arguments);
-  extensions.unshift(parentClass.prototype);
-  extensions.unshift(childClass.prototype);
-  Object.assign.apply(null, extensions);
-  childClass.prototype.constructor = childClass;
+  var prototypeExtensions = Array.prototype.slice.call(arguments);
+  prototypeExtensions.unshift(parentClass.prototype);
+  prototypeExtensions.unshift({ constructor: childClass });
+  childClass.prototype = Object.assign.apply(null, prototypeExtensions);
   childClass.extend = extend;
   return childClass;
 };
