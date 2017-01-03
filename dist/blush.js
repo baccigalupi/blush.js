@@ -271,8 +271,6 @@ Blush.View = Blush.BaseClass.extend({
   }
 });
 
-Blush.View.name = 'View';
-
 Blush.View.defaultConfig = {
   viewModel: function() {
     return {
