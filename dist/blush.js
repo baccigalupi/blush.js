@@ -46,6 +46,15 @@ Blush.polyfills.objectAssign = function() {
 
 Object.assign = Object.assign || Blush.polyfills.objectAssign;
 
+Blush.utils.functionBind = function functionBind(context) {
+  var func = this;
+  return function() {
+    return func.apply(context, arguments);
+  };
+};
+
+Function.prototype.bind = Function.prototype.bind || Blush.utils.functionBind;
+
 Blush.utils.typeOf = function typeOf(value) {
   var output = Object.prototype.toString.call(value);
   var matches = output.match(/\[object (.*)\]/);
@@ -98,24 +107,40 @@ Blush.BaseClass.prototype.__initialize = function () {
 Blush.BaseClass.prototype._initialize = function () {};
 Blush.BaseClass.prototype.initialize = function () {};
 
-Blush.BaseClass.extend = function extend() {
-  var parentClass = this;
-  var childClass  = Blush.createConstructor();
-  var extensions = Array.prototype.slice.call(arguments);
-  extensions.unshift(parentClass.prototype);
-  extensions.unshift(childClass.prototype);
-  Object.assign.apply(null, extensions);
-  childClass.prototype.constructor = childClass;
-  childClass.extend = extend;
-  return childClass;
+Blush.BaseClass.extend = function extend(attrs) {
+  var ParentClass = this;
+  var ChildClass  = Blush.createConstructor();
+
+  var proto = {};
+  proto = Blush.BaseClass.mixProto(proto, ParentClass.prototype);
+  proto = Blush.BaseClass.mixProto(proto, attrs);
+
+  ChildClass.prototype = proto;
+  ChildClass.prototype.contstructor = ChildClass;
+  ChildClass.prototype.klass        = ChildClass;
+  ChildClass.extend = extend;
+
+  return ChildClass;
+};
+
+Blush.BaseClass.mixProto = function mixProto(origProto, attrs) {
+  var proto = Object.assign({}, origProto);
+  var attr;
+
+  for (var attr in attrs) {
+    if ( attr.match(/prototype|__proto__|superclass|constructor/) ) { continue; }
+    proto[attr] = attrs[attr];
+  }
+
+  return proto;
 };
 
 Blush.Config = Blush.BaseClass.extend({
-  _initialize: function(config, klass, app) {
-    this.defaultConfig = klass.defaultConfig;
+  _initialize: function(config, defaultConfig, app) {
+    this.defaultConfig = defaultConfig;
     this.config = config;
     this.app = app;
-    this.appClass = app.constructor;
+    this.appClass = app.klass;
   },
 
   get: function(key) {
@@ -134,7 +159,7 @@ Blush.Config = Blush.BaseClass.extend({
 
   getFromApp: function(key) {
     var name = this.get('name');
-    if (!this.appClass || !name) { return; }
+    if (!this.appClass || !name) { return this.defaultConfig[key]; }
 
     var collection = this.appCollection(key);
     var value = collection[name] || collection[Blush.utils.classify(name)];
@@ -162,7 +187,7 @@ Blush.ViewModel = Blush.BaseClass.extend({
   json: function() {
     return new Blush.ViewModel.ExtractJSON(this).run();
   }
-}, Blush.utils);
+});
 
 Blush.ViewModel.ExtractJSON = Blush.BaseClass.extend({
   _initialize: function(viewModel) {
@@ -198,7 +223,7 @@ Blush.View = Blush.BaseClass.extend({
   _initialize: function(opts) {
     opts = opts || {};
     this.app = opts.app;
-    this._config = new Blush.Config(this.config, Blush.View, this.app);
+    this._config = new Blush.Config(this.config, Blush.View.defaultConfig, this.app);
     this.dom = this.findDom(opts) || document.createElement('div');
   },
 
@@ -246,6 +271,8 @@ Blush.View = Blush.BaseClass.extend({
   }
 });
 
+Blush.View.name = 'View';
+
 Blush.View.defaultConfig = {
   viewModel: function() {
     return {
@@ -279,7 +306,13 @@ Blush.View.DomFinder = Blush.BaseClass.extend({
 
 Blush.App = Blush.BaseClass.extend({
   _initialize: function() {
-    this.dom = document.querySelector(this.selector);
+    this.dom    = document.querySelector(this.selector);
+    this.events = new Blush.Events();
+    this.router = new this.klass.Router(this, this.events);
+  },
+
+  start: function() {
+    this.router.start();
   },
 
   selector: '.application-container'
@@ -289,13 +322,13 @@ Blush.App.Views = {};
 Blush.App.ViewModels = {};
 Blush.App.Templates = {};
 
-Blush.App.extend = function() {
-  var App = Blush.BaseClass.extend.apply(this, arguments);
+Blush.App.extend = function(attrs) {
+  var App = Blush.BaseClass.extend.call(this, attrs);
   App.Views       = {};
   App.ViewModels  = {};
   App.Templates   = {};
   return App;
-}
+};
 
 Blush.Events = Blush.BaseClass.extend({
   __initialize: function() {
@@ -311,7 +344,8 @@ Blush.Events = Blush.BaseClass.extend({
   trigger: function() {
     var args = Array.prototype.slice.call(arguments);
     var eventName = args[0];
-    this.callbacks[eventName].forEach(function(callback) {
+    var callbacks = this.callbacks[eventName] || [];
+    callbacks.forEach(function(callback) {
       callback.apply(callback, args);
     });
   }
@@ -320,7 +354,7 @@ Blush.Events = Blush.BaseClass.extend({
 Blush.Route = Blush.BaseClass.extend({
   initialize: function(app, matcher, viewName) {
     this.app = app;
-    this.Views = app.constructor.Views;
+    this.Views = app.klass.Views;
     this.matcher  = matcher;
     this.viewName = viewName;
     this.paramNames = [];
@@ -399,6 +433,67 @@ Blush.Route = Blush.BaseClass.extend({
     });
 
     return params;
+  }
+});
+
+Blush.Router = Blush.BaseClass.extend({
+  _initialize: function(app, events) {
+    this.events = events;
+    this.app = app;
+  },
+
+  start: function() {
+    this.routeSet = new Blush.Router.LoadRoutes(this.app, this.routes).run();
+    this.listenForUrlChanges();
+    this.events.on('data:route', this.route.bind(this));
+    this.onStart();
+  },
+
+  listenForUrlChanges: function() {
+    throw new Error('implement me: listenForUrlChanges in Router');
+    //new Blush.DomRebroadcaster.HashChange(this.events, window);
+    //new Blush.DomRebroadcaster.PopStateChange(this.events, window);
+  },
+
+  onStart: function() {
+    // this should really be part of the data store, default state
+    // and route data should pull from data.route instead of finding it;
+    var startingRoute = window.location.hash.slice(1) || 'welcome';
+    this.events.trigger('data:route', startingRoute);
+    //this.events.trigger('data:route', this.data('route'));
+  },
+
+  route: function(eventName, matcher) {
+    if (!this.routeSet) { return; }
+
+    var foundRoute = this.routeSet.find(function(route) {
+      return route.match(matcher);
+    });
+
+    if (foundRoute) { foundRoute.render(); }
+  }
+});
+
+Blush.Router.LoadRoutes = Blush.BaseClass.extend({
+  initialize: function(app, routeMap) {
+    this.app = app;
+    this.routeMap = routeMap;
+    this.set = [];
+  },
+
+  run: function() {
+    var matcher;
+    var routeMap = this.routeMap;
+    for (matcher in routeMap) {
+      this.addRoute(matcher);
+    }
+    return this.set;
+  },
+
+  addRoute: function(matcher) {
+    var viewName = this.routeMap[matcher];
+    var route = new Blush.Route(this.app, matcher, viewName);
+    this.set.push(route);
   }
 });
 
