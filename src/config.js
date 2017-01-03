@@ -1,9 +1,9 @@
 Blush.Config = Blush.BaseClass.extend({
-  _initialize: function(config, klass, app) {
-    this.defaultConfig = klass.defaultConfig;
+  _initialize: function(config, defaultConfig, app) {
+    this.defaultConfig = defaultConfig;
     this.config = config;
     this.app = app;
-    this.appClass = app.constructor;
+    this.appClass = app.klass;
   },
 
   get: function(key) {
@@ -22,7 +22,7 @@ Blush.Config = Blush.BaseClass.extend({
 
   getFromApp: function(key) {
     var name = this.get('name');
-    if (!this.appClass || !name) { return; }
+    if (!this.appClass || !name) { return this.defaultConfig[key]; }
 
     var collection = this.appCollection(key);
     var value = collection[name] || collection[Blush.utils.classify(name)];

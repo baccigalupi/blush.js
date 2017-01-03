@@ -2,7 +2,7 @@ Blush.View = Blush.BaseClass.extend({
   _initialize: function(opts) {
     opts = opts || {};
     this.app = opts.app;
-    this._config = new Blush.Config(this.config, Blush.View, this.app);
+    this._config = new Blush.Config(this.config, Blush.View.defaultConfig, this.app);
     this.dom = this.findDom(opts) || document.createElement('div');
   },
 
@@ -49,6 +49,8 @@ Blush.View = Blush.BaseClass.extend({
     return this._config.get('renderVia');
   }
 });
+
+Blush.View.name = 'View';
 
 Blush.View.defaultConfig = {
   viewModel: function() {

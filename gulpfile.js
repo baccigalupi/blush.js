@@ -85,6 +85,7 @@ gulp.task('concatSource', function () {
     './src/declaration.js',
     './src/polyfills/array.js',
     './src/polyfills/object-assign.js',
+    './src/polyfills/function-bind.js',
     './src/utils.js',
     './src/base-class.js',
     './src/config.js',
@@ -93,6 +94,7 @@ gulp.task('concatSource', function () {
     './src/app.js',
     './src/events.js',
     './src/route.js',
+    './src/router.js',
     './src/dom-rebroadcaster.js',
     './src/dom-rebroadcaster/hash-change.js'
   ];

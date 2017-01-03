@@ -1,7 +1,7 @@
 Blush.Route = Blush.BaseClass.extend({
   initialize: function(app, matcher, viewName) {
     this.app = app;
-    this.Views = app.constructor.Views;
+    this.Views = app.klass.Views;
     this.matcher  = matcher;
     this.viewName = viewName;
     this.paramNames = [];

@@ -5,7 +5,7 @@ describe('Blush.Router', function() {
     spyData = {};
     events = new Blush.Events();
     app = {
-      constructor: {
+      klass: {
         Views: {
           HelloWorld: Blush.View.extend({
             config: { name: 'hello-world'},

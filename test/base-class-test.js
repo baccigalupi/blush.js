@@ -1,38 +1,59 @@
 describe('Blush.BaseClass', function () {
-  var NewClass = Blush.BaseClass.extend({
-    _initialize() {
-      this._initialized = true;
-      this._initializedArguments = arguments;
-    },
+  var spyData, NewClass, ThirdGen;
 
-    initialize() {
-      this.initialized = true;
-      this.initializedArguments = arguments;
-    }
+  beforeEach(function() {
+    spyData = {};
+    NewClass = Blush.BaseClass.extend({
+      _initialize() {
+        spyData._initialized = true;
+        spyData._initializedArguments = arguments;
+      },
+
+      initialize() {
+        spyData.initialized = true;
+        spyData.initializedArguments = arguments;
+      },
+
+      write: function() {
+        spyData.writeClass = 'NewClass';
+      }
+    });
+
+    ThirdGen = NewClass.extend({
+      initialize: function() {
+        spyData.gen = 3;
+      },
+
+      write: function() {
+        spyData.writeClass = 'ThirdGen';
+      },
+
+      movingOn: true
+    });
   });
 
   it('initialization calls this._initialize', function () {
-    var instance = new NewClass();
-    expect(instance._initialized).toBe(true);
+    new NewClass();
+    expect(spyData._initialized).toBe(true);
   });
 
   it('initialization calls _initialize with arguments to new', function () {
-    var instance = new NewClass('foo', 'bar', 42);
-    expect(instance._initializedArguments[0]).toEqual('foo');
-    expect(instance._initializedArguments[1]).toEqual('bar');
-    expect(instance._initializedArguments[2]).toEqual(42);
+    new NewClass('foo', 'bar', 42);
+    expect(spyData._initializedArguments[0]).toEqual('foo');
+    expect(spyData._initializedArguments[1]).toEqual('bar');
+    expect(spyData._initializedArguments[2]).toEqual(42);
   });
 
   it('initialization calls this.initialize', function () {
-    var instance = new NewClass();
-    expect(instance.initialized).toBe(true);
+    new NewClass();
+    expect(spyData.initialized).toBe(true);
   });
 
   it('initialization calls initialize with arguments to new', function () {
-    var instance = new NewClass('foo', 'bar', 42);
-    expect(instance.initializedArguments[0]).toEqual('foo');
-    expect(instance.initializedArguments[1]).toEqual('bar');
-    expect(instance.initializedArguments[2]).toEqual(42);
+    new NewClass('foo', 'bar', 42);
+    expect(spyData.initializedArguments[0]).toEqual('foo');
+    expect(spyData.initializedArguments[1]).toEqual('bar');
+    expect(spyData.initializedArguments[2]).toEqual(42);
   });
 
   it('the instance is of the class that created it', function () {
@@ -41,15 +62,12 @@ describe('Blush.BaseClass', function () {
   });
 
   it('inherits many levels deep', function() {
-    var ThirdGen = NewClass.extend({
-      initialize: function() {
-        this.gen = 3;
-      }
-    });
     var instance = new ThirdGen();
+    instance.write();
 
-    expect(instance.gen).toEqual(3);
-    expect(instance._initialized).toEqual(true);
+    expect(spyData.gen).toEqual(3);
+    expect(spyData._initialized).toEqual(true);
+    expect(spyData.writeClass).toEqual('ThirdGen');
   });
 
   it('throws an error if the class is called as a normal function', function () {
@@ -58,9 +76,9 @@ describe('Blush.BaseClass', function () {
     }).toThrow();
   });
 
-  it('knows its constructor', function() {
-    var instance = new NewClass();
-    expect(instance.constructor).toEqual(NewClass);
+  it('knows its creating klass (constructor gets overwritter sadly)', function() {
+    var instance = new ThirdGen();
+    expect(instance.klass).toEqual(ThirdGen);
   });
 
   it('does fine without any setup', function() {

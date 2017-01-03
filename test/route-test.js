@@ -3,7 +3,7 @@ describe('Blush.Route', function() {
 
   beforeEach(function() {
     app = {
-      constructor: {
+      klass: {
         Views: {
           HelloWorld: Blush.View.extend({
             config: {name: 'hello-world'},
@@ -125,7 +125,7 @@ describe('Blush.Route', function() {
       route = new Blush.Route(app, 'page/*page', 'static-pages');
       expect(route.ViewClass()).toBe(undefined);
       route = new Blush.Route(app, 'welcome/friends', 'hello-world');
-      expect(route.ViewClass()).toBe(app.constructor.Views.HelloWorld);
+      expect(route.ViewClass()).toBe(app.klass.Views.HelloWorld);
     });
   });
 

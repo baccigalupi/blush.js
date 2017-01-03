@@ -8,7 +8,7 @@ describe('Blush.View', function() {
     });
 
     app = {
-      constructor: {
+      klass: {
         Templates: {'hello-world': '<h1>hello {{type}} world</h1>'},
         ViewModels: {'HelloWorld': ViewModel}
       }

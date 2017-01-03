@@ -8,7 +8,7 @@ Blush.ViewModel = Blush.BaseClass.extend({
   json: function() {
     return new Blush.ViewModel.ExtractJSON(this).run();
   }
-}, Blush.utils);
+});
 
 Blush.ViewModel.ExtractJSON = Blush.BaseClass.extend({
   _initialize: function(viewModel) {
